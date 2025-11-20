@@ -33,20 +33,50 @@ int yywrap() {
 ```
 ```
 %{
-#include "expr5.tab.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+int count = 0;  // count of 'a's
+int yylex(void);
+void yyerror(const char *s);
 %}
 
-%%
-
-a       { return A; }
-b       { return B; }
-\n      { return '\n'; }
-.       { return INVALID; }
+%token A B INVALID
 
 %%
-int yywrap() {
-    return 1;
+
+input:
+    A_seq B '\n' {
+        if (count >= 10) {
+            printf("Valid string: a^n b where n >= 10\n");
+        } else {
+            printf("Invalid: less than 10 'a's before 'b'\n");
+        }
+        count = 0; // reset for next input
+    }
+  | INVALID '\n' {
+        printf("Invalid character in input.\n");
+        count = 0;
+    }
+  ;
+
+A_seq:
+    A           { count = 1; }
+  | A_seq A     { count++; }
+  ;
+
+%%
+
+int main() {
+    printf("Enter strings (e.g., aaa...ab), one per line (Ctrl+D to quit):\n");
+    while (yyparse() == 0);
+    return 0;
 }
+
+void yyerror(const char *s) {
+    // Errors handled in grammar
+}
+
 ```
 ## OUTPUT:
 <img width="1920" height="1080" alt="Screenshot (206)" src="https://github.com/user-attachments/assets/8f9cd75b-44b4-4405-8fb6-1a8b27eda7b2" />
